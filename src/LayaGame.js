@@ -1,5 +1,6 @@
 //  声明全局变量
 var WebGL = Laya.WebGL;
+var Stat = Laya.Stat;
 var Sprite = Laya.Sprite;
 var Stage = Laya.Stage;
 var Browser = Laya.Browser;
@@ -9,30 +10,52 @@ var Rectangle = Laya.Rectangle;
 var Texture = Laya.Texture;
 var Handler = Laya.Handler;
 
+var Rate;   //  屏幕缩放比例
+var PositonX; //    左移修正
 var LayerIndex = { ui: 0, game: 1, main: 2, chip: 3 };
 var GarbageRes = [];
+var Pudding;
 
 ; (function () {
     //  声明游戏对象
-    var Pudding;
 
     ; (function () {
         //  抗锯齿
         Laya.Config.isAntialias = true;
         //  初始化
-        Laya.init(window.innerWidth * ((Browser.width / window.innerWidth) - 1), window.innerHeight * ((Browser.height / window.innerHeight) - 1), WebGL);
+        // alert(Laya.Browser.pixelRatio);
+        // Laya.init(window.innerWidth * ((Browser.width / window.innerWidth) - 1), window.innerHeight * ((Browser.height / window.innerHeight) - 1), WebGL);
+        // alert(window.innerWidth * ((Browser.width / window.innerWidth) - 1) + ',' + window.innerHeight * ((Browser.height / window.innerHeight) - 1));
+        Laya.init(Browser.width, 1572, WebGL);
+
+        Stat.show(0, 0);
         //  开启鼠标事件
         Laya.stage.mouseEnabled = true;
-        Laya.stage.scaleMode = Laya.Stage.SCALE_SHOWALL;
+        Laya.stage.scaleMode = Laya.Stage.SCALE_FIXED_HEIGHT;
+        console.log(Laya.stage.scaleMode);
         Laya.stage.bgColor = "#213823";
 
         Laya.stage.alignV = Stage.ALIGN_MIDDLE;
         Laya.stage.alignH = Stage.ALIGN_CENTER;
 
         var stageBackground = "assets/imgs/bg.png";
-        Laya.loader.load(stageBackground, Handler.create(this, stageSetup))
+        Laya.loader.load(stageBackground, Handler.create(this, stageSetup));
+        PuddingTemp = new Laya.Templet();
 
+        //  加载模型文件
+        PuddingTemp.loadAni('res/dragonBones/pudding/pudding.sk')
+        PuddingTemp.on(Laya.Event.COMPLETE, this, LoadPudding);
+
+        //  加载粽子模型
+        function LoadPudding() {
+            Pudding = PuddingTemp.buildArmature(1);
+            // Pudding.pos(726 / 2, 1572 / 2);
+            Pudding.scale(.5, .5)
+            Pudding.play(0, true);
+            // UIgameing.addChild(Pudding);
+        }
     })();
+
 
     /**
      * 舞台加载完毕
@@ -40,14 +63,22 @@ var GarbageRes = [];
     function stageSetup() {
         console.log('舞台加载完毕..')
         var game = new GameLogics();
+
         game.stageOpen();
     }
 })();
 
 var GameLogics = function () {
+    // Rate = window.innerHeight / 1572
+    // Rate = Browser.pixelRatio > 2 ? Rate * 2 : Rate;
+    // //  UI左移坐标修正
+    // PositonX = Browser.pixelRatio > 2 ? 720 * Rate / 3 : 720 * Rate;
 
+    var UIstart = new startUI();
     var UIopening = new openViewUI();
     var UIgameing = new gamingUI();
+    var UIwin = new winUI();
+    var UIlost = new lostUI();
 
     /**
      * 资源加载
@@ -64,7 +95,7 @@ var GameLogics = function () {
      * 资源加载完毕,回调函数
      */
     function LoadResComplete() {
-        Laya.stage.addChildAt(UIopening, LayerIndex.ui);
+        Laya.stage.addChildAt(UIstart, LayerIndex.ui);
     }
 
     /**
@@ -73,14 +104,28 @@ var GameLogics = function () {
     this.stageOpen = function () {
         console.log('游戏开场场景初始化...')
         this.LoadRes();
+        var readyBtn = UIstart.getChildByName('gameStarted');
+        //  绑定游戏准备按钮
+        readyBtn.on(Laya.Event.MOUSE_DOWN, this, handlerReadyBtnClick);
+        function handlerReadyBtnClick() {
+            UIstart.removeSelf();
+            Laya.stage.addChild(UIopening);
+        }
+
+
+
         var gameBeginBtn = UIopening.getChildByName('gameBeginBtn');
         gameBeginBtn.on(Event.MOUSE_DOWN, this, beginBtnHandler);
-
+        var restartBtn = UIlost.getChildByName('restartBtn');
+        restartBtn.on(Event.MOUSE_DOWN, this, beginBtnHandler);
         /**
          * 点击开始游戏按钮
          */
         function beginBtnHandler() {
             console.log('开始游戏...')
+            UIlost.removeSelf();
+            UIgameing.destroy();
+            UIgameing = new gamingUI();
             UIopening.removeSelf();
             this.stageGame();
         }
@@ -93,7 +138,7 @@ var GameLogics = function () {
         console.log('游戏中场景初始化...')
         //  声明游戏对象
         //  游戏机制变量:剥粽子数量,游戏计时,游戏计时计数器,游戏最大计时,游戏状态,游戏滑动计数器
-        var GameTotal, GameTimeCounter, GameTime, GameTimeMax, GameStatus, GameSwipeCounter;
+        var GameTotal, GameTimeCounter, GameTime, GameTimeMax, GameStatus, GameSwipeCounter, GameMaxTime;
         //  触摸/点击事件:是否被点击,是否划动,是否执行1次,是否碰撞,被触摸点坐标
         var isTouch, isSwipe, isOnce, isHit, TouchPoint;
         //  粽子变量:粽子动画模板,粽子,粽子掉皮,粽子表情列表
@@ -101,11 +146,11 @@ var GameLogics = function () {
         //  划动痕迹:划痕堆栈,单个划痕
         var SwipeLines, SwipeLine;
 
-        //  载入游戏界面
+        //  载入游戏界面 - UIgameing
         Laya.stage.addChildAt(UIgameing, LayerIndex.ui);
 
         var PuddingData = new function () {
-            this.faceList = ['smile', 'poor', 'normal', 'chagrin', 'wnwilling'];
+            this.faceList = ['smile', 'poor', 'normal', 'chagrin', 'unwilling'];
             this.faceIndex = 0;
             this.maxHp = 7;
             this.Hp = 0;
@@ -117,53 +162,73 @@ var GameLogics = function () {
         isOnce = true;
         SwipeLines = [];
         PuddingData.Hp = PuddingData.maxHp;
+        GameMaxTime = 3;
 
         PuddingSkinChip = new Laya.Image();
         this.spriteAlign(PuddingSkinChip);
-        PuddingTemp = new Laya.Templet();
 
-        //  加载模型文件
-        PuddingTemp.loadAni('res/dragonBones/pudding/pudding.sk')
-        PuddingTemp.on(Laya.Event.COMPLETE, this, LoadPudding);
-
-        //  加载粽子模型
-        function LoadPudding() {
-            Pudding = PuddingTemp.buildArmature(1);
-            Pudding.pos(UIgameing.width / 2, UIgameing.height / 2);
-            Pudding.play(1, true);
-            console.log(Pudding.getSlotByName('face'))
-            Laya.stage.addChild(Pudding);
-        }
+        GameStatus = true;
 
         //  开启计时器
         var timeLolly = UIgameing.getChildByName('time_counter_lolly');
         var timeTop = UIgameing.getChildByName('time_counter_top');
         var timeWidth = timeTop.width - timeLolly.x;
+        var totalTop = UIgameing.getChildByName('total_counter');
+        var totalLolly = totalTop.getChildByName('total_counter_lolly');
+        var totalWidth = totalTop.width - timeLolly.x;
+        var timeNumber = UIgameing.getChildByName('time_number');
         Laya.timer.loop(1000, this, timerEachSecound)
+
         //  计时器每秒事件
         function timerEachSecound() {
-            GameTimeCounter++;
-            if (GameTimeCounter > 50) {
-                Laya.timer.clear();
+            console.log('每秒轮询事件触发')
+            if (!GameStatus) {
+                Laya.timer.clear(this, timerEachSecound);
+                Laya.timer.once(0, this, gameOver);
+                return false;
+            }
+            ++GameTimeCounter;
+            timeNumber.text = GameTimeCounter;
+            if (GameTimeCounter + 1 > GameMaxTime) {
+                // Laya.timer.clear();
+                UIgameing.off(Event.MOUSE_DOWN, this, eventMouseDown);
+                UIgameing.off(Event.MOUSE_MOVE, this, eventMouseMove);
+                UIgameing.off(Event.MOUSE_UP, this, eventMouseUp);
+                GameStatus = false;
+
             }
             // console.log(timeLolly);
             //  时间计时条缓动动画
-            Tween.to(timeLolly, { width: timeWidth / 20 * GameTimeCounter }, 500)
+            Tween.to(timeLolly, { width: timeWidth / 2 / GameMaxTime * GameTimeCounter }, 500)
             //  划痕回收
-            if (GarbageRes.length > 0) {
-                console.log('开始回收资源' + GarbageRes.length + '个');
+            // console.log(GarbageRes);
+            if (GarbageRes.length > 0 && GarbageRes != null) {
+                // console.log('开始回收资源' + GarbageRes.length + '个');
                 GarbageRes.map(function (e, i) {
                     GarbageRes.pop(i);
                     e.destroy();
                 });
-                console.log('清理后的资源个数' + GarbageRes.length + '个');
+                console.log('回收资源')
+                // console.log('清理后的资源个数' + GarbageRes.length + '个');
+            }
+        }
+
+        function gameOver() {
+            console.log('游戏结束...');
+            if (GameTotal < 1) {
+                //  输了
+                Laya.stage.addChildAt(UIlost, 1);
+
+            } else {
+                //  赢了
+                Laya.stage.addChildAt(UIwin, 1);
             }
         }
 
         //  绑定舞台事件
-        Laya.stage.on(Event.MOUSE_DOWN, this, eventMouseDown);
+        UIgameing.on(Event.MOUSE_DOWN, this, eventMouseDown);
         // Laya.stage.on(Event.MOUSE_MOVE, this, eventMouseMove);
-        Laya.stage.on(Event.MOUSE_UP, this, eventMouseUp);
+        UIgameing.on(Event.MOUSE_UP, this, eventMouseUp);
 
         //  鼠标按下
         function eventMouseDown(event) {
@@ -176,9 +241,10 @@ var GameLogics = function () {
             PuddingSkinChip.loadImage('assets/imgs/pudding/skin_part_' + (PuddingData.maxHp - PuddingData.Hp + 1) + '.png');
             PuddingSkinChip.scale(0.5, 0.5);
             this.spriteAlign(PuddingSkinChip);
-            Laya.stage.on(Event.MOUSE_MOVE, this, eventMouseMove);
+            UIgameing.on(Event.MOUSE_MOVE, this, eventMouseMove);
             //  随机脸
             PuddingData.faceIndex = 1 + Math.ceil(Math.random() * 3);
+            console.log(Rate);
         }
 
         //  鼠标移动
@@ -191,17 +257,16 @@ var GameLogics = function () {
                 if (this.spriteCollision(Pudding, { x: touchTarget.mouseX, y: touchTarget.mouseY })) {
                     isHit = true;
                     if (isOnce) {
-                        var puddingFace = PuddingData.faceList[PuddingData.faceIndex];
                         //  被划到要变脸
-                        Pudding.showSlotSkinByIndex('face', PuddingData.faceIndex + 0);
-                        //  被划到需要丢皮
-                        // PuddingSkinChip.on(Laya.Event.COMPLETE, this, function () {
+                        Pudding.replaceSlotSkinName('face', 'face/face_1', 'face/face_' + PuddingData.faceIndex)
+                        //  被划到需要丢皮 - 丢皮移到松开事件 -> eventMouseUp
                         this.spriteAlign(PuddingSkinChip);
                         UIgameing.addChild(PuddingSkinChip);
                     }
                     // })
                     isOnce = false;
-                    PuddingSkinChip.pos(touchTarget.mouseX, touchTarget.mouseY);
+                    PuddingSkinChip.pos(touchTarget.mouseX
+                        , touchTarget.mouseY);
                 }
             }
         }
@@ -213,33 +278,42 @@ var GameLogics = function () {
             if (isSwipe) {
                 SwipeLine.graphics.clear();
                 SwipeLine.graphics.drawLine(TouchPoint.x, TouchPoint.y, touchTarget.mouseX, touchTarget.mouseY, "white", 20);
-                Laya.stage.addChildAt(SwipeLine, LayerIndex.game + 1);
+                UIgameing.addChildAt(SwipeLine, LayerIndex.game + 1);
                 //  缓动动画结束后,销毁划痕
                 Tween.to(SwipeLine, { alpha: 0 }, 500, Laya.Ease.bounceIn, Handler.create(this, this.spriteDestroy, [SwipeLine]));
-            }
-            if (isHit) {
-                //  扣血
-                if (PuddingData.Hp-- < 0) {
-                    GameTotal++
-                    PuddingData.Hp = PuddingData.maxHp;
-                    var puddingTotal ;
-                    puddingTotal = UIgameing.getChildByName('pudding_counter');
-                    console.log(puddingTotal);
-                    // PuddingTotal.text++;
-                }
-                var hpTips = new Laya.Text();
-                hpTips.text = 'Hp:' + PuddingData.Hp;
-                hpTips.color = 'red';
-                hpTips.fontSize = '64';
-                hpTips.pos(touchTarget.mouseX, UIgameing.height / 2);
-                UIgameing.addChild(hpTips);
-                //  掉皮
-                var pee = 7 - PuddingData.Hp;
-                Pudding.showSlotSkinByIndex('body', pee);
-                Tween.to(hpTips, { y: -200, alpha: 0 }, 2000, null, Handler.create(this, this.spriteDestroy, [hpTips]));
-                Tween.to(PuddingSkinChip, { y: -500, alpha: 0 }, 1500, null, Handler.create(this, this.spriteDestroy, [PuddingSkinChip]));
-            }
+                if (isHit) {
+                    //  扣血
+                    PuddingData.Hp -= 1
+                    if (PuddingData.Hp < 0) {
+                        console.log(PuddingData.Hp);
+                        //  划掉一个粽子
+                        ++GameTotal
+                        //  恢复最大血量
+                        PuddingData.Hp = PuddingData.maxHp;
+                        var puddingTotal = UIgameing.getChildByName('pudding_counter');
+                        puddingTotal.text = GameTotal;
+                        var totalLolly = UIgameing.getChildByName('total_counter').getChildByName('total_counter_lolly');
+                        if (GameTotal < 15) {
+                            Tween.to(totalLolly, { width: totalWidth / 15 * GameTotal }, 500)
+                        } else {
+                            // Tween.to(totalTop, { y: -20 }, null, 200)
+                        }
 
+                    }
+                    //   弹出血量提示
+                    var hpTips = new Laya.Text();
+                    hpTips.text = 'Hp:' + PuddingData.Hp;
+                    hpTips.color = 'red';
+                    hpTips.fontSize = '48';
+                    hpTips.pos(touchTarget.mouseX, UIgameing.height / 2);
+                    UIgameing.addChild(hpTips);
+                    //  掉皮
+                    var pee = 7 - PuddingData.Hp;
+                    Pudding.showSlotSkinByIndex('body', pee);
+                    Tween.to(hpTips, { y: -200, alpha: 0 }, 2000, null, Handler.create(this, this.spriteDestroy, [hpTips]));
+                    Tween.to(PuddingSkinChip, { y: -500, alpha: 0, rotation: 720 }, 1500, null, Handler.create(this, this.spriteDestroy, [PuddingSkinChip]));
+                }
+            }
             isTouch = isSwipe = isHit = false;
             isOnce = true;
             Laya.stage.off(Event.MOUSE_MOVE, this, eventMouseMove);
@@ -254,7 +328,8 @@ var GameLogics = function () {
 
     //  Sprite销毁 - 主要用于缓动动画之后自我销毁
     this.spriteDestroy = function (e) {
-        GarbageRes.push(e);
+        // GarbageRes.push(e);
+        e.destroy();
     }
     //  Sprite内对齐
     this.spriteAlign = function (e, mode = 'center') {

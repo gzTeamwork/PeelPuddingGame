@@ -3,7 +3,7 @@
     "type":"View",
     "selectedBox":1,
     "selecteID":5,
-    "props":{"width":720,"sceneColor":"#000000","height":1280},
+    "props":{"width":726,"sceneColor":"null","layoutEnabled":true,"height":1572},
     "nodeParent":-1,
     "label":"View",
     "isOpen":true,
@@ -15,7 +15,7 @@
         {
             "x":15,
             "type":"Image",
-            "props":{"y":0,"x":0,"width":720,"skin":"game/bg.png","height":1280},
+            "props":{"y":0,"x":0,"width":726,"visible":true,"skin":"game/bg.png","height":1572},
             "nodeParent":1,
             "label":"Image",
             "isDirectory":false,
@@ -27,27 +27,79 @@
         },
         {
             "x":15,
-            "type":"Label",
-            "props":{"y":242,"x":180,"text":"手指上下滑动剥开粽叶","fontSize":36,"color":"#ffffff"},
+            "type":"Image",
+            "props":{"y":0,"x":0,"skin":"game/logo.png","scaleY":0.5,"scaleX":0.5},
             "nodeParent":1,
-            "label":"Label",
+            "label":"Image",
             "isDirectory":false,
             "isAniNode":true,
             "hasChild":false,
-            "compId":3,
+            "compId":6,
             "child":[
                 ]
         },
         {
             "x":15,
-            "type":"Button",
-            "props":{"y":613,"x":257,"width":210,"skin":"comp/button.png","name":"gameBeginBtn","labelSize":24,"label":"开始游戏","height":64},
+            "type":"Image",
+            "props":{"y":170,"x":176,"width":734,"skin":"game/explain.png","scaleY":0.5,"scaleX":0.5,"height":292},
             "nodeParent":1,
-            "label":"Button(gameBeginBtn)",
+            "label":"Image",
             "isDirectory":false,
             "isAniNode":true,
             "hasChild":false,
-            "compId":5,
+            "compId":7,
+            "child":[
+                ]
+        },
+        {
+            "x":15,
+            "type":"Image",
+            "props":{"y":958,"x":167,"skin":"game/Ready.png","scaleY":0.5,"scaleX":0.5,"name":"gameBeginBtn"},
+            "nodeParent":1,
+            "label":"Image(gameBeginBtn)",
+            "isDirectory":false,
+            "isAniNode":true,
+            "hasChild":false,
+            "compId":8,
+            "child":[
+                ]
+        },
+        {
+            "x":15,
+            "type":"Label",
+            "props":{"y":1122,"x":0,"width":726,"text":"——  15秒内剥够20个即过关  ——","height":88,"fontSize":35,"color":"#ffffff","align":"center"},
+            "nodeParent":1,
+            "label":"Label",
+            "isDirectory":false,
+            "isAniNode":true,
+            "hasChild":false,
+            "compId":9,
+            "child":[
+                ]
+        },
+        {
+            "x":15,
+            "type":"Label",
+            "props":{"y":1176,"x":0,"width":726,"text":"过后联系客服","height":57,"fontSize":35,"color":"#ffffff","align":"center"},
+            "nodeParent":1,
+            "label":"Label",
+            "isDirectory":false,
+            "isAniNode":true,
+            "hasChild":false,
+            "compId":10,
+            "child":[
+                ]
+        },
+        {
+            "x":15,
+            "type":"Label",
+            "props":{"y":1240,"x":0,"width":726,"text":"领取1个粽子","height":100,"fontSize":45,"color":"#ffdb0f","align":"center"},
+            "nodeParent":1,
+            "label":"Label",
+            "isDirectory":false,
+            "isAniNode":true,
+            "hasChild":false,
+            "compId":11,
             "child":[
                 ]
         }],

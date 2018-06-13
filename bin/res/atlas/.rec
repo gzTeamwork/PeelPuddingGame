@@ -1,5 +1,4 @@
 D .
-R FDF33B23 .DS_Store
 D comp
 P D12221A9 bg.png
 P 9401CC40 blank.png
@@ -35,8 +34,18 @@ P 7E990267 vscroll.png
 P E466EB1C vslider$bar.png
 P 2BFF7046 vslider.png
 D game
-R 1A4C02E6 .DS_Store
-S 9A16FFBD bg.png
+R 0663CF1E Armature_pudding_hurt.gif
+S E9E05068 bg.png
+R 5F4DF3A5 explain.png
+R B2735B0F failed.png
+R C69C94F0 flower.png
+S 34974E2A halo.png
+R A669AA38 logo.png
+P 76BEA0BB message.png
+R 2C239A79 Ready.png
+R 3D562365 recur.png
+R BCC60914 solgan.png
+R 3B5C413E startBtn.png
 R E29F756C success_tips.png
 R 47202970 time_counter_bottom.png
 R 0B57EF55 time_counter_lolly.png
@@ -44,3 +53,4 @@ R B3B67A5E time_counter_top.png
 R 21260D83 total_counter_bottom.png
 R 503EF645 total_counter_lolly.png
 R 502063D2 total_counter_top.png
+R D554CB87 wintext.png

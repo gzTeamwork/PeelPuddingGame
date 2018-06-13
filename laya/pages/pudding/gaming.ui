@@ -2,8 +2,8 @@
     "x":0,
     "type":"View",
     "selectedBox":1,
-    "selecteID":17,
-    "props":{"sceneWidth":720,"sceneHeight":1280,"sceneColor":"#000000"},
+    "selecteID":23,
+    "props":{"width":726,"sceneWidth":720,"sceneHeight":1280,"sceneColor":"#000000","layoutEnabled":true,"height":1572},
     "nodeParent":-1,
     "label":"View",
     "isOpen":true,
@@ -15,7 +15,7 @@
         {
             "x":15,
             "type":"Image",
-            "props":{"y":-50,"x":0,"width":1452,"skin":"game/bg.png","scaleY":0.5,"scaleX":0.5,"height":3145},
+            "props":{"y":0,"x":0,"width":726,"skin":"game/bg.png","height":1572},
             "nodeParent":1,
             "label":"Image",
             "isDirectory":false,
@@ -134,6 +134,32 @@
             "child":[
                 ],
             "$HIDDEN":false
+        },
+        {
+            "x":15,
+            "type":"Label",
+            "props":{"y":219,"x":611,"text":"0","name":"time_number","fontSize":48,"color":"#ffffff","anchorX":0,"align":"center"},
+            "nodeParent":1,
+            "label":"Label(time_number)",
+            "isDirectory":false,
+            "isAniNode":true,
+            "hasChild":false,
+            "compId":20,
+            "child":[
+                ]
+        },
+        {
+            "x":15,
+            "type":"Image",
+            "props":{"x":0,"width":726,"skin":"game/flower.png","scaleY":0.5,"bottom":0},
+            "nodeParent":1,
+            "label":"Image",
+            "isDirectory":false,
+            "isAniNode":true,
+            "hasChild":false,
+            "compId":23,
+            "child":[
+                ]
         }],
     "animations":[
         {
