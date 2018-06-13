@@ -37,7 +37,7 @@ var lostUI=(function(_super){
 
 		}
 
-		lostUI.uiView={"type":"View","props":{"width":726,"height":1572},"child":[{"type":"Image","props":{"y":0,"x":0,"width":726,"skin":"game/bg.png","height":1572}},{"type":"Image","props":{"y":0,"x":0,"width":726,"skin":"game/halo.png","height":1572}},{"type":"Image","props":{"y":0,"x":0,"skin":"game/logo.png"}},{"type":"Label","props":{"y":369,"x":2,"width":726,"text":"居然只剥了19个粽子","height":81,"fontSize":55,"color":"#f3d94a","bold":true,"align":"center"}},{"type":"Image","props":{"y":269,"x":132,"skin":"game/failed.png","scaleY":0.6,"scaleX":0.6}},{"type":"Image","props":{"y":1126,"skin":"game/recur.png","scaleY":0.5,"scaleX":0.5,"name":"restartBtn","centerX":0}},{"type":"Image","props":{"x":0,"width":726,"skin":"game/flower.png","scaleY":0.5,"bottom":0}}]};
+		lostUI.uiView={"type":"View","props":{"width":726,"height":1572},"child":[{"type":"Image","props":{"y":0,"x":0,"width":726,"skin":"game/bg.png","height":1572}},{"type":"Image","props":{"y":0,"x":0,"width":726,"skin":"game/halo.png","height":1572}},{"type":"Image","props":{"y":0,"x":0,"skin":"game/logo.png"}},{"type":"Label","props":{"y":369,"x":2,"width":726,"text":"居然只剥了19个粽子","strokeColor":"#000000","stroke":10,"name":"lost_counter","height":81,"fontSize":55,"font":"Microsoft YaHei","color":"#f3d94a","bold":true,"align":"center"}},{"type":"Image","props":{"y":269,"x":132,"skin":"game/failed.png","scaleY":0.6,"scaleX":0.6}},{"type":"Image","props":{"y":1126,"skin":"game/recur.png","scaleY":0.5,"scaleX":0.5,"name":"restartBtn","centerX":0}},{"type":"Image","props":{"x":0,"width":726,"skin":"game/flower.png","scaleY":0.5,"bottom":0}}]};
 		return lostUI;
 	})(View);
 var openViewUI=(function(_super){
@@ -88,12 +88,13 @@ var winUI=(function(_super){
 		CLASS$(winUI,'ui.pudding.winUI',_super);
 		var __proto__=winUI.prototype;
 		__proto__.createChildren=function(){
-		    
+		    			View.regComponent("Particle2D",laya.particle.Particle2D);
+
 			laya.ui.Component.prototype.createChildren.call(this);
 			this.createView(winUI.uiView);
 
 		}
 
-		winUI.uiView={"type":"View","props":{},"child":[{"type":"Image","props":{"y":0,"x":0,"width":726,"skin":"game/bg.png","height":1572}},{"type":"Image","props":{"y":0,"x":0,"width":726,"skin":"game/halo.png","height":1572}},{"type":"Image","props":{"y":265,"x":166,"skin":"game/wintext.png","scaleY":0.5,"scaleX":0.5}},{"type":"Image","props":{"y":0,"x":0,"skin":"game/logo.png","scaleY":0.5,"scaleX":0.5}},{"type":"Label","props":{"y":1183,"x":9,"width":721,"text":"——  请联系我们的客服  ——","height":45,"fontSize":35,"color":"#ffffff","align":"center"}},{"type":"Label","props":{"y":1235,"x":1,"width":728,"text":"领取1个粽子","height":93,"fontSize":45,"color":"#ffdb0f","align":"center"}},{"type":"Image","props":{"x":0,"width":726,"skin":"game/flower.png","scaleY":0.6,"height":592,"bottom":0}}]};
+		winUI.uiView={"type":"View","props":{},"child":[{"type":"Image","props":{"y":0,"x":0,"width":726,"skin":"game/bg.png","height":1572}},{"type":"Image","props":{"y":0,"x":0,"width":726,"skin":"game/halo.png","height":1572}},{"type":"Image","props":{"y":265,"x":166,"skin":"game/wintext.png","scaleY":0.5,"scaleX":0.5}},{"type":"Image","props":{"y":0,"x":0,"skin":"game/logo.png","scaleY":0.5,"scaleX":0.5}},{"type":"Label","props":{"y":1183,"x":9,"width":721,"text":"——  请联系我们的客服  ——","height":45,"fontSize":35,"color":"#ffffff","align":"center"}},{"type":"Label","props":{"y":1235,"x":1,"width":728,"text":"领取1个粽子","height":93,"fontSize":45,"color":"#ffdb0f","align":"center"}},{"type":"Image","props":{"x":0,"width":726,"skin":"game/flower.png","scaleY":0.6,"height":592,"bottom":0}},{"type":"Particle2D","props":{"y":979,"x":299,"width":109,"url":"pudding/win_flower.part","name":"win_flower","height":147,"autoPlay":true}}]};
 		return winUI;
 	})(View);

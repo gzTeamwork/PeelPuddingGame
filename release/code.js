@@ -53496,7 +53496,7 @@ var GarbageRes = [];
      */
     function stageSetup() {
         console.log('舞台加载完毕..')
-        var game = new GameLogics();
+        var game = GameLogics();
         game.stageOpen();
     }
 })();

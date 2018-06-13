@@ -1,5 +1,6 @@
 //  声明全局变量
 var WebGL = Laya.WebGL;
+var Loader = Laya.loader;
 var Stat = Laya.Stat;
 var Sprite = Laya.Sprite;
 var Stage = Laya.Stage;
@@ -10,15 +11,15 @@ var Rectangle = Laya.Rectangle;
 var Texture = Laya.Texture;
 var Handler = Laya.Handler;
 
+
 var Rate;   //  屏幕缩放比例
 var PositonX; //    左移修正
 var LayerIndex = { ui: 0, game: 1, main: 2, chip: 3 };
 var GarbageRes = [];
-var Pudding;
-
-; (function () {
+var PuddingTemplate = new Laya.Templet();
+var mAniPath = 'res/dragonBones/pudding/pudding.sk';
+var GameMain = (function () {
     //  声明游戏对象
-
     ; (function () {
         //  抗锯齿
         Laya.Config.isAntialias = true;
@@ -40,30 +41,19 @@ var Pudding;
 
         var stageBackground = "assets/imgs/bg.png";
         Laya.loader.load(stageBackground, Handler.create(this, stageSetup));
-        PuddingTemp = new Laya.Templet();
+        // PuddingTemp = new Laya.Templet();
 
         //  加载模型文件
-        PuddingTemp.loadAni('res/dragonBones/pudding/pudding.sk')
-        PuddingTemp.on(Laya.Event.COMPLETE, this, LoadPudding);
+        // Laya.Loader.on(Event.LOADER, this, stageSetup);
+        /**
+         * 舞台加载完毕
+         */
 
-        //  加载粽子模型
-        function LoadPudding() {
-            Pudding = PuddingTemp.buildArmature(1);
-            // Pudding.pos(726 / 2, 1572 / 2);
-            Pudding.scale(.5, .5)
-            Pudding.play(0, true);
-            // UIgameing.addChild(Pudding);
-        }
     })();
-
-
-    /**
-     * 舞台加载完毕
-     */
     function stageSetup() {
         console.log('舞台加载完毕..')
-        var game = new GameLogics();
 
+        var game = new GameLogics();
         game.stageOpen();
     }
 })();
@@ -73,7 +63,7 @@ var GameLogics = function () {
     // Rate = Browser.pixelRatio > 2 ? Rate * 2 : Rate;
     // //  UI左移坐标修正
     // PositonX = Browser.pixelRatio > 2 ? 720 * Rate / 3 : 720 * Rate;
-
+    //  UI
     var UIstart = new startUI();
     var UIopening = new openViewUI();
     var UIgameing = new gamingUI();
@@ -83,52 +73,80 @@ var GameLogics = function () {
     /**
      * 资源加载
      */
-    this.LoadRes = function () {
+    ; (function () {
         var resArray = [
             { url: 'res/atlas/comp.atlas', type: Laya.Loader.ATLAS }
         ]
-        Laya.loader.load(resArray, Laya.Handler.create(null, LoadResComplete()));
+        Laya.loader.load(resArray, Laya.Handler.create(null, function () {
+            Laya.stage.addChildAt(UIstart, LayerIndex.ui);
 
-    }
+        }));
+
+    })()
+
+    //  绑定游戏开始事件
+    var gameBeginBtn = UIopening.getChildByName('gameBeginBtn');
+    gameBeginBtn.on(Event.MOUSE_DOWN, this, beginBtnHandler);
+    //  绑定游戏重开事件
+    var restartBtn = UIlost.getChildByName('restartBtn');
+    restartBtn.on(Event.MOUSE_DOWN, this, beginBtnHandler);
+    //  绑定游戏准备按钮
+    var readyBtn = UIstart.getChildByName('gameStarted');
+    readyBtn.on(Laya.Event.MOUSE_DOWN, this, function () {
+        UIstart.removeSelf();
+        Laya.stage.addChild(UIopening);
+        this.stageReady();
+    })
 
     /**
-     * 资源加载完毕,回调函数
+     * 点击开始游戏按钮
      */
-    function LoadResComplete() {
-        Laya.stage.addChildAt(UIstart, LayerIndex.ui);
+    function beginBtnHandler() {
+        console.log('开始游戏...')
+
+        UIlost.removeSelf();
+        // UIlost.destroy();
+        // UIlost = new lostUI();
+
+        UIgameing.removeSelf();
+        UIgameing.destroy();
+        UIgameing = new gamingUI();
+
+        UIopening.removeSelf();
+        // UIopening.destroy();
+        // UIopening = new openViewUI();
+
+        this.stageGame();
     }
+    //  获取粽子模型对象
+    function LoadPudding(UI, skinIndex = 0, xPer = 1, yPer = 1) {
+        console.log('加载粽子~')
+        PuddingModel = PuddingTemplate.buildArmature(1);
+        UI.addChildAt(PuddingModel, 3);
+        // console.log(UI.height)
+        PuddingModel.pos(UI.width * xPer, UI.height * yPer);
+        PuddingModel.scale(.5, .5)
+        PuddingModel.play(skinIndex, true);
+    }
+    // PuddingTemplate = new Laya.Templet();
+    // PuddingTemplate.on(Event.COMPLETE, this, LoadPudding, [UIstart, 0, .5, .4]);
+    // PuddingTemplate.loadAni(mAniPath);
 
     /**
      * 游戏开场场景初始化...
      */
     this.stageOpen = function () {
-        console.log('游戏开场场景初始化...')
-        this.LoadRes();
-        var readyBtn = UIstart.getChildByName('gameStarted');
-        //  绑定游戏准备按钮
-        readyBtn.on(Laya.Event.MOUSE_DOWN, this, handlerReadyBtnClick);
-        function handlerReadyBtnClick() {
-            UIstart.removeSelf();
-            Laya.stage.addChild(UIopening);
-        }
+        console.log('游戏开场场景初始化...');
+        PuddingTemplate = new Laya.Templet();
+        PuddingTemplate.on(Event.COMPLETE, this, LoadPudding, [UIstart, 0, .5, .4]);
+        PuddingTemplate.loadAni(mAniPath);
+    }
 
-
-
-        var gameBeginBtn = UIopening.getChildByName('gameBeginBtn');
-        gameBeginBtn.on(Event.MOUSE_DOWN, this, beginBtnHandler);
-        var restartBtn = UIlost.getChildByName('restartBtn');
-        restartBtn.on(Event.MOUSE_DOWN, this, beginBtnHandler);
-        /**
-         * 点击开始游戏按钮
-         */
-        function beginBtnHandler() {
-            console.log('开始游戏...')
-            UIlost.removeSelf();
-            UIgameing.destroy();
-            UIgameing = new gamingUI();
-            UIopening.removeSelf();
-            this.stageGame();
-        }
+    this.stageReady = function () {
+        console.log('游戏准备场景初始化...')
+        PuddingTemplate = new Laya.Templet();
+        PuddingTemplate.on(Event.COMPLETE, this, LoadPudding, [UIopening, 0, .5, .4]);
+        PuddingTemplate.loadAni(mAniPath);
     }
 
     /**
@@ -136,6 +154,7 @@ var GameLogics = function () {
      */
     this.stageGame = function () {
         console.log('游戏中场景初始化...')
+
         //  声明游戏对象
         //  游戏机制变量:剥粽子数量,游戏计时,游戏计时计数器,游戏最大计时,游戏状态,游戏滑动计数器
         var GameTotal, GameTimeCounter, GameTime, GameTimeMax, GameStatus, GameSwipeCounter, GameMaxTime;
@@ -145,7 +164,16 @@ var GameLogics = function () {
         var PuddingTemp, Pudding, PuddingSkinChip, PuddingFaceList, PuddingFa;
         //  划动痕迹:划痕堆栈,单个划痕
         var SwipeLines, SwipeLine;
-
+        PuddingTemplate = new Laya.Templet();
+        PuddingTemplate.on(Event.COMPLETE, this, function () {
+            Pudding = PuddingTemplate.buildArmature(1);
+            UIgameing.addChildAt(Pudding, 3);
+            // console.log(UI.height)
+            Pudding.pos(UIgameing.width / 2, UIgameing.height / 2);
+            Pudding.scale(.5, .5)
+            Pudding.play(1, true);
+        })
+        PuddingTemplate.loadAni(mAniPath);
         //  载入游戏界面 - UIgameing
         Laya.stage.addChildAt(UIgameing, LayerIndex.ui);
 
@@ -217,11 +245,21 @@ var GameLogics = function () {
             console.log('游戏结束...');
             if (GameTotal < 1) {
                 //  输了
+                PuddingTemplate = new Laya.Templet();
+                PuddingTemplate.on(Event.COMPLETE, this, LoadPudding, [UIlost, 2, .5, .5]);
+                PuddingTemplate.loadAni(mAniPath);
                 Laya.stage.addChildAt(UIlost, 1);
-
+                var lostCounter = UIlost.getChildByName('lost_counter');
+                lostCounter.text = '居然只剥了' + GameTotal + '个粽子';
             } else {
                 //  赢了
                 Laya.stage.addChildAt(UIwin, 1);
+                PuddingTemplate = new Laya.Templet();
+                PuddingTemplate.on(Event.COMPLETE, this, LoadPudding, [UIwin
+                    , 3, .5, .5]);
+                PuddingTemplate.loadAni(mAniPath);
+                var winFlower = UIwin.getChildByName('win_flower');
+                winFlower.pos(UIwin.width / 2, UIwin.height / 2)
             }
         }
 

@@ -1,4 +1,6 @@
 D .
+R FDF33B23 .DS_Store
+R 39B957DA texture.png
 D comp
 P D12221A9 bg.png
 P 9401CC40 blank.png
@@ -34,7 +36,9 @@ P 7E990267 vscroll.png
 P E466EB1C vslider$bar.png
 P 2BFF7046 vslider.png
 D game
-R 0663CF1E Armature_pudding_hurt.gif
+R 1A4C02E6 .DS_Store
+P EFDB7B1C 13.jpg
+P 0663CF1E Armature_pudding_hurt.gif
 S E9E05068 bg.png
 R 5F4DF3A5 explain.png
 R B2735B0F failed.png
